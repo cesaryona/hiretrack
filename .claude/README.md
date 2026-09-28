@@ -116,9 +116,9 @@ The module structure is verified with Spring Modulith's `ApplicationModules.veri
 
 ## Roadmap
 
-- [ ] Project setup (Spring Boot, Modulith, PostgreSQL, Flyway)
-- [ ] `job` module: create and list job postings
-- [ ] `application` module: apply to a job, status state machine
+- [x] Project setup (Spring Boot, Modulith, PostgreSQL, Flyway)
+- [x] `job` module: create and list job postings
+- [x] `application` module: apply to a job, status state machine
 - [ ] `ApplicationStatusChangedEvent` + `notification` module listener
 - [ ] Resume upload (PDF)
 - [ ] Standardized error handling (`ProblemDetail`)

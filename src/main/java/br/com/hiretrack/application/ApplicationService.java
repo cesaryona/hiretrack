@@ -1,9 +1,11 @@
 package br.com.hiretrack.application;
 
 import br.com.hiretrack.application.domain.ApplicationStatus;
+import br.com.hiretrack.application.domain.ApplicationStatusHistory;
 import br.com.hiretrack.application.domain.BusinessRuleException;
 import br.com.hiretrack.application.domain.Candidate;
 import br.com.hiretrack.application.domain.JobApplication;
+import br.com.hiretrack.application.infra.ApplicationStatusHistoryRepository;
 import br.com.hiretrack.application.infra.CandidateRepository;
 import br.com.hiretrack.application.infra.JobApplicationRepository;
 import br.com.hiretrack.job.JobService;
@@ -12,6 +14,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,6 +24,7 @@ public class ApplicationService {
 
     private final CandidateRepository candidateRepository;
     private final JobApplicationRepository jobApplicationRepository;
+    private final ApplicationStatusHistoryRepository statusHistoryRepository;
     private final JobService jobService;
     private final ApplicationEventPublisher events;
 
@@ -56,14 +60,18 @@ public class ApplicationService {
         return jobApplicationRepository.findById(id);
     }
 
+    @Transactional(readOnly = true)
+    public List<ApplicationStatusHistory> findHistoryByApplicationId(UUID applicationId) {
+        return statusHistoryRepository.findByApplicationIdOrderByCreatedAtAsc(applicationId);
+    }
+
     @Transactional
     public Optional<JobApplication> changeStatus(UUID id, ApplicationStatus newStatus) {
         return jobApplicationRepository.findById(id).map(application -> {
             var previousStatus = application.getStatus();
             application.changeStatus(newStatus);
             var candidate = candidateRepository.getReferenceById(application.getCandidateId());
-            events.publishEvent(new ApplicationStatusChangedEvent(application.getId(), application.getJobId(),
-                    candidate.getName(), candidate.getEmail(), previousStatus.name(), newStatus.name()));
+            events.publishEvent(ApplicationStatusChangedEvent.of(application, candidate, previousStatus, newStatus));
             return application;
         });
     }

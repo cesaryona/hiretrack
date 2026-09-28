@@ -7,6 +7,10 @@ public enum ApplicationStatus {
     APPROVED,
     REJECTED;
 
+    public java.util.List<ApplicationStatus> availableTransitions() {
+        return java.util.Arrays.stream(values()).filter(this::canTransitionTo).toList();
+    }
+
     public boolean canTransitionTo(ApplicationStatus target) {
         return switch (this) {
             case RECEIVED -> target == UNDER_REVIEW;

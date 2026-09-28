@@ -197,7 +197,7 @@ Endpoints: substantivo no plural (`/jobs`). Ação de negócio vira `PATCH /{id}
 ### 3.8 Migration (Flyway)
 
 - Pasta: `src/main/resources/db/migration/`.
-- Nome: `V<n>__<descricao>.sql`. A numeração é **global** (compartilhada entre todos os módulos). A última é a `V2`, então a próxima é `V3`.
+- Nome: `V<n>__<descricao>.sql`. A numeração é **global** (compartilhada entre todos os módulos). A última é a `V3`, então a próxima é `V4`.
 - **Nunca edite uma migration que já rodou.** Toda mudança vai numa migration nova.
 - As colunas da `BaseEntity` são obrigatórias em toda tabela:
 
@@ -265,7 +265,7 @@ O `application` já está pronto (`Candidate`, `JobApplication`, `ApplicationSta
 `ApplicationStatusChangedEvent` (na raiz de `application`) ao mudar o status.
 
 - Escutar o evento com `@ApplicationModuleListener`.
-- Criar migration com a tabela `event_publication` do Spring Modulith (o Flyway cuida do schema, então ela não é criada sozinha).
+- A migration da tabela `event_publication` já existe (`V3`).
 - Por enquanto, "enviar" = logar. E-mail real fica para depois.
 
 ## 6. Checklist de um módulo novo

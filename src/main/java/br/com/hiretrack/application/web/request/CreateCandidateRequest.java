@@ -5,6 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record CreateCandidateRequest(
-        @NotBlank @Size(max = 150) String name,
-        @NotBlank @Email @Size(max = 150) String email) {
+        @NotBlank(message = "must not be blank") @Size(max = 150) String name,
+        @NotBlank(message = "must not be blank") @Email @Size(max = 150) String email) {
 }

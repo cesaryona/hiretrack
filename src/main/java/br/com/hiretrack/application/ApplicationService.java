@@ -9,13 +9,15 @@ import br.com.hiretrack.application.infra.ApplicationStatusHistoryRepository;
 import br.com.hiretrack.application.infra.CandidateRepository;
 import br.com.hiretrack.application.infra.JobApplicationRepository;
 import br.com.hiretrack.job.JobService;
+import com.lib.exception.core.NotFoundException;
+import com.lib.exception.enums.ExceptionEnum;
+import com.lib.exception.core.ApiException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -37,8 +39,8 @@ public class ApplicationService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<Candidate> findCandidateById(UUID id) {
-        return candidateRepository.findById(id);
+    public Candidate findCandidateById(UUID id) {
+        return candidateRepository.findById(id).orElseThrow(NotFoundException::new);
     }
 
     @Transactional
@@ -50,14 +52,14 @@ public class ApplicationService {
             throw new BusinessRuleException("Candidate not found");
         }
         if (jobApplicationRepository.existsByJobIdAndCandidateId(jobId, candidateId)) {
-            throw new BusinessRuleException("Candidate already applied to this job");
+            throw new ApiException(ExceptionEnum.CONFLICT, "Candidate already applied to this job");
         }
         return jobApplicationRepository.save(new JobApplication(jobId, candidateId));
     }
 
     @Transactional(readOnly = true)
-    public Optional<JobApplication> findById(UUID id) {
-        return jobApplicationRepository.findById(id);
+    public JobApplication findById(UUID id) {
+        return jobApplicationRepository.findById(id).orElseThrow(NotFoundException::new);
     }
 
     @Transactional(readOnly = true)
@@ -66,13 +68,12 @@ public class ApplicationService {
     }
 
     @Transactional
-    public Optional<JobApplication> changeStatus(UUID id, ApplicationStatus newStatus) {
-        return jobApplicationRepository.findById(id).map(application -> {
-            var previousStatus = application.getStatus();
-            application.changeStatus(newStatus);
-            var candidate = candidateRepository.getReferenceById(application.getCandidateId());
-            events.publishEvent(ApplicationStatusChangedEvent.of(application, candidate, previousStatus, newStatus));
-            return application;
-        });
+    public JobApplication changeStatus(UUID id, ApplicationStatus newStatus) {
+        var application = jobApplicationRepository.findById(id).orElseThrow(NotFoundException::new);
+        var previousStatus = application.getStatus();
+        application.changeStatus(newStatus);
+        var candidate = candidateRepository.getReferenceById(application.getCandidateId());
+        events.publishEvent(ApplicationStatusChangedEvent.of(application, candidate, previousStatus, newStatus));
+        return application;
     }
 }

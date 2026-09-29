@@ -27,7 +27,7 @@ class CandidateController {
     }
 
     @GetMapping("/{id}")
-    ResponseEntity<CandidateResponse> findById(@PathVariable UUID id) {
-        return ResponseEntity.of(applicationService.findCandidateById(id).map(candidateMapper::toResponse));
+    CandidateResponse findById(@PathVariable UUID id) {
+        return candidateMapper.toResponse(applicationService.findCandidateById(id));
     }
 }

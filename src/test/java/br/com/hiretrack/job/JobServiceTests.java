@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 
+import org.springframework.data.domain.PageRequest;
+
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,7 +27,7 @@ class JobServiceTests {
 
         assertThat(job.getId()).isNotNull();
         assertThat(job.getStatus()).isEqualTo(JobStatus.OPEN);
-        assertThat(jobService.list()).extracting("title").contains("Backend Developer");
+        assertThat(jobService.list(PageRequest.of(0, 10)).getContent()).extracting("title").contains("Backend Developer");
         assertThat(jobService.findById(job.getId())).isPresent();
     }
 

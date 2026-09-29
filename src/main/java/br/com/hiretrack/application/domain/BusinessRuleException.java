@@ -1,6 +1,8 @@
 package br.com.hiretrack.application.domain;
 
-public class BusinessRuleException extends RuntimeException {
+import com.lib.exception.core.BusinessException;
+
+public class BusinessRuleException extends BusinessException {
 
     public BusinessRuleException(String message) {
         super(message);

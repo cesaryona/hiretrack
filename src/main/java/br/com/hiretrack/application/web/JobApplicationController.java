@@ -31,13 +31,13 @@ class JobApplicationController {
     }
 
     @GetMapping("/{id}")
-    ResponseEntity<JobApplicationResponse> findById(@PathVariable UUID id) {
-        return ResponseEntity.of(applicationService.findById(id).map(jobApplicationMapper::toResponse));
+    JobApplicationResponse findById(@PathVariable UUID id) {
+        return jobApplicationMapper.toResponse(applicationService.findById(id));
     }
 
     @PatchMapping("/{id}/status")
-    ResponseEntity<JobApplicationResponse> changeStatus(@PathVariable UUID id, @Valid @RequestBody ChangeStatusRequest request) {
-        return ResponseEntity.of(applicationService.changeStatus(id, request.status()).map(jobApplicationMapper::toResponse));
+    JobApplicationResponse changeStatus(@PathVariable UUID id, @Valid @RequestBody ChangeStatusRequest request) {
+        return jobApplicationMapper.toResponse(applicationService.changeStatus(id, request.status()));
     }
 
     @GetMapping("/{id}/history")

@@ -4,11 +4,12 @@ import br.com.hiretrack.job.domain.Job;
 import br.com.hiretrack.job.domain.JobStatus;
 import br.com.hiretrack.job.infra.JobRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
+import com.lib.exception.core.NotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,8 +25,8 @@ public class JobService {
     }
 
     @Transactional(readOnly = true)
-    public List<Job> list() {
-        return jobRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+    public Page<Job> list(Pageable pageable) {
+        return jobRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
@@ -39,10 +40,9 @@ public class JobService {
     }
 
     @Transactional
-    public Optional<Job> close(UUID id) {
-        return jobRepository.findById(id).map(job -> {
-            job.close();
-            return job;
-        });
+    public Job close(UUID id) {
+        var job = jobRepository.findById(id).orElseThrow(NotFoundException::new);
+        job.close();
+        return job;
     }
 }

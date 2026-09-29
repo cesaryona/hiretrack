@@ -3,13 +3,17 @@ package br.com.hiretrack.job.web;
 import br.com.hiretrack.job.JobService;
 import br.com.hiretrack.job.web.request.CreateJobRequest;
 import br.com.hiretrack.job.web.response.JobResponse;
+import com.lib.exception.core.NotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -28,17 +32,17 @@ class JobController {
     }
 
     @GetMapping
-    List<JobResponse> list() {
-        return jobService.list().stream().map(jobMapper::toResponse).toList();
+    Page<JobResponse> list(@PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return jobService.list(pageable).map(jobMapper::toResponse);
     }
 
     @GetMapping("/{id}")
-    ResponseEntity<JobResponse> findById(@PathVariable UUID id) {
-        return ResponseEntity.of(jobService.findById(id).map(jobMapper::toResponse));
+    JobResponse findById(@PathVariable UUID id) {
+        return jobMapper.toResponse(jobService.findById(id).orElseThrow(NotFoundException::new));
     }
 
     @PatchMapping("/{id}/close")
-    ResponseEntity<JobResponse> close(@PathVariable UUID id) {
-        return ResponseEntity.of(jobService.close(id).map(jobMapper::toResponse));
+    JobResponse close(@PathVariable UUID id) {
+        return jobMapper.toResponse(jobService.close(id));
     }
 }

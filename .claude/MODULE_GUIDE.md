@@ -284,5 +284,4 @@ O `application` já está pronto (`Candidate`, `JobApplication`, `ApplicationSta
 ## 7. Pendências conhecidas
 
 - Nenhum teste da camada HTTP (validação 400, 404, header `Location`).
-- Erro padronizado só no `application`: `BusinessRuleException` vira 422 com `ProblemDetail`. O 404 ainda sai sem corpo.
 - Imagem do Postgres em `latest`. Vale fixar uma versão (ex.: `postgres:17`) no `compose.yaml` e no `TestcontainersConfiguration`.

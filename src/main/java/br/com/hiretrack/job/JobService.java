@@ -10,7 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -30,18 +29,18 @@ public class JobService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<Job> findById(UUID id) {
-        return jobRepository.findById(id);
+    public Job findById(UUID id) {
+        return jobRepository.findById(id).orElseThrow(NotFoundException::new);
     }
 
     @Transactional(readOnly = true)
     public boolean isOpen(UUID id) {
-        return jobRepository.findById(id).map(job -> job.getStatus() == JobStatus.OPEN).orElse(false);
+        return findById(id).getStatus() == JobStatus.OPEN;
     }
 
     @Transactional
     public Job close(UUID id) {
-        var job = jobRepository.findById(id).orElseThrow(NotFoundException::new);
+        var job = findById(id);
         job.close();
         return job;
     }

@@ -46,10 +46,10 @@ public class ApplicationService {
     @Transactional
     public JobApplication apply(UUID jobId, UUID candidateId) {
         if (!jobService.isOpen(jobId)) {
-            throw new BusinessRuleException("Job not found or closed");
+            throw new BusinessRuleException("Job is closed");
         }
         if (!candidateRepository.existsById(candidateId)) {
-            throw new BusinessRuleException("Candidate not found");
+            throw new NotFoundException("Candidate not found");
         }
         if (jobApplicationRepository.existsByJobIdAndCandidateId(jobId, candidateId)) {
             throw new ApiException(ExceptionEnum.CONFLICT, "Candidate already applied to this job");
@@ -64,12 +64,15 @@ public class ApplicationService {
 
     @Transactional(readOnly = true)
     public List<ApplicationStatusHistory> findHistoryByApplicationId(UUID applicationId) {
+        if (!jobApplicationRepository.existsById(applicationId)) {
+            throw new NotFoundException();
+        }
         return statusHistoryRepository.findByApplicationIdOrderByCreatedAtAsc(applicationId);
     }
 
     @Transactional
     public JobApplication changeStatus(UUID id, ApplicationStatus newStatus) {
-        var application = jobApplicationRepository.findById(id).orElseThrow(NotFoundException::new);
+        var application = jobApplicationRepository.findByIdForUpdate(id).orElseThrow(NotFoundException::new);
         var previousStatus = application.getStatus();
         application.changeStatus(newStatus);
         var candidate = candidateRepository.getReferenceById(application.getCandidateId());

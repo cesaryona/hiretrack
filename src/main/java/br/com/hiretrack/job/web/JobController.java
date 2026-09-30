@@ -3,7 +3,6 @@ package br.com.hiretrack.job.web;
 import br.com.hiretrack.job.JobService;
 import br.com.hiretrack.job.web.request.CreateJobRequest;
 import br.com.hiretrack.job.web.response.JobResponse;
-import com.lib.exception.core.NotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -38,7 +37,7 @@ class JobController {
 
     @GetMapping("/{id}")
     JobResponse findById(@PathVariable UUID id) {
-        return jobMapper.toResponse(jobService.findById(id).orElseThrow(NotFoundException::new));
+        return jobMapper.toResponse(jobService.findById(id));
     }
 
     @PatchMapping("/{id}/close")

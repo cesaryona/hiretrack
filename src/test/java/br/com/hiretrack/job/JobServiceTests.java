@@ -31,7 +31,7 @@ class JobServiceTests {
         assertThat(job.getStatus()).isEqualTo(JobStatus.OPEN);
         assertThat(jobService.list(PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"))).getContent())
                 .extracting(Job::getId).contains(job.getId());
-        assertThat(jobService.findById(job.getId())).isPresent();
+        assertThat(jobService.findById(job.getId()).getId()).isEqualTo(job.getId());
     }
 
     @Test
@@ -41,7 +41,13 @@ class JobServiceTests {
         var closed = jobService.close(job.getId());
 
         assertThat(closed.getStatus()).isEqualTo(JobStatus.CLOSED);
-        assertThat(jobService.findById(job.getId())).get().extracting(Job::getStatus).isEqualTo(JobStatus.CLOSED);
+        assertThat(jobService.findById(job.getId()).getStatus()).isEqualTo(JobStatus.CLOSED);
+    }
+
+    @Test
+    void findingUnknownJobThrowsNotFound() {
+        assertThatThrownBy(() -> jobService.findById(UUID.randomUUID()))
+                .isInstanceOf(NotFoundException.class);
     }
 
     @Test

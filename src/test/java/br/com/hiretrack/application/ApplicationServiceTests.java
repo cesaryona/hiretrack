@@ -4,9 +4,11 @@ import br.com.hiretrack.TestcontainersConfiguration;
 import br.com.hiretrack.application.domain.ApplicationStatus;
 import br.com.hiretrack.application.domain.BusinessRuleException;
 import br.com.hiretrack.application.domain.Candidate;
-import br.com.hiretrack.application.domain.JobApplication;
 import br.com.hiretrack.job.JobService;
 import br.com.hiretrack.job.domain.Job;
+import com.lib.exception.core.ApiException;
+import com.lib.exception.core.NotFoundException;
+import com.lib.exception.enums.ExceptionEnum;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,8 +42,7 @@ class ApplicationServiceTests {
 
         applicationService.changeStatus(application.getId(), ApplicationStatus.UNDER_REVIEW);
 
-        assertThat(applicationService.findById(application.getId())).get()
-                .extracting(JobApplication::getStatus).isEqualTo(ApplicationStatus.UNDER_REVIEW);
+        assertThat(applicationService.findById(application.getId()).getStatus()).isEqualTo(ApplicationStatus.UNDER_REVIEW);
         assertThat(events.stream(ApplicationStatusChangedEvent.class)).singleElement().satisfies(event -> {
             assertThat(event.previousStatus()).isEqualTo("RECEIVED");
             assertThat(event.newStatus()).isEqualTo("UNDER_REVIEW");
@@ -72,7 +73,26 @@ class ApplicationServiceTests {
         applicationService.apply(jobId, candidateId);
 
         assertThatThrownBy(() -> applicationService.apply(jobId, candidateId))
-                .isInstanceOf(BusinessRuleException.class);
+                .isInstanceOf(ApiException.class)
+                .extracting("type").isEqualTo(ExceptionEnum.CONFLICT);
+    }
+
+    @Test
+    void findingUnknownApplicationThrowsNotFound() {
+        assertThatThrownBy(() -> applicationService.findById(UUID.randomUUID()))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void findingUnknownCandidateThrowsNotFound() {
+        assertThatThrownBy(() -> applicationService.findCandidateById(UUID.randomUUID()))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void changingStatusOfUnknownApplicationThrowsNotFound() {
+        assertThatThrownBy(() -> applicationService.changeStatus(UUID.randomUUID(), ApplicationStatus.UNDER_REVIEW))
+                .isInstanceOf(NotFoundException.class);
     }
 
     private UUID openJob() {

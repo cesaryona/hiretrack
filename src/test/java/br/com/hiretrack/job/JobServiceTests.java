@@ -3,16 +3,18 @@ package br.com.hiretrack.job;
 import br.com.hiretrack.TestcontainersConfiguration;
 import br.com.hiretrack.job.domain.Job;
 import br.com.hiretrack.job.domain.JobStatus;
+import com.lib.exception.core.NotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
@@ -27,7 +29,8 @@ class JobServiceTests {
 
         assertThat(job.getId()).isNotNull();
         assertThat(job.getStatus()).isEqualTo(JobStatus.OPEN);
-        assertThat(jobService.list(PageRequest.of(0, 10)).getContent()).extracting("title").contains("Backend Developer");
+        assertThat(jobService.list(PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"))).getContent())
+                .extracting(Job::getId).contains(job.getId());
         assertThat(jobService.findById(job.getId())).isPresent();
     }
 
@@ -35,13 +38,15 @@ class JobServiceTests {
     void closesJob() {
         var job = jobService.create(new Job("Frontend Developer", "Xpto", "React"));
 
-        jobService.close(job.getId());
+        var closed = jobService.close(job.getId());
 
+        assertThat(closed.getStatus()).isEqualTo(JobStatus.CLOSED);
         assertThat(jobService.findById(job.getId())).get().extracting(Job::getStatus).isEqualTo(JobStatus.CLOSED);
     }
 
     @Test
-    void closingUnknownJobReturnsEmpty() {
-        assertThat(jobService.close(UUID.randomUUID())).isEmpty();
+    void closingUnknownJobThrowsNotFound() {
+        assertThatThrownBy(() -> jobService.close(UUID.randomUUID()))
+                .isInstanceOf(NotFoundException.class);
     }
 }
